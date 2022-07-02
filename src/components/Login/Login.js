@@ -1,7 +1,9 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useContext, useRef } from 'react';
 import Card from '../UI/Card/Card';
 import classes from './Login.module.css';
 import Button from '../UI/Button/Button';
+import AuthContext from '../../store/auth_context';
+import Input from '../UI/Input/Input';
 
 // Note: We create reducer function outside of the component function becoz inside this reducer function, we won't need any data that is generated here inside the component function. Hence, this reducer function can be created outside of the component function becoz it does not need to interact with anything that is defined inside the componet function. All the data defined in the reducer function will be passed automatically by the react when it is executed.
 const emailReducer = (state, action) => {
@@ -25,7 +27,7 @@ const passwordReducer = (state, action) => {
   }
 
   if (action.type === 'INPUT_BLUR') {
-    return { value: state.value, isValid: state.value.trim().length > 6};
+    return { value: state.value, isValid: state.value.trim().length > 6 };
   }
 
   return { value: '', isValid: false };
@@ -48,11 +50,16 @@ const Login = (props) => {
   const [passwordState, dispatchPassword] = useReducer(passwordReducer, {
     value: '',
     isValid: null
-  });  
+  });
 
   // to avoid unneccsary effect execution: means when the inputs are valid, the use effect code should not run again. mtlb useeffect() run houga jdo v state update hougi, bt apa enu odo stop krna chaune aa jdo sadian inputs valid ho jaan. for eg: jd email enter hogi and password enter hogea 'useEffect()' te 'cleanup()' run krnge te console ch show hou pr jdo password 7 digit tk valid ho janda ae te apa 8 digit, 9 or more than 9 digits enter krage te 'useEffect()' stop hoju , we can see console othe show nai hou meassage console.log('Checking form validity'); and console.log('Cleanup');.
-  const {isValid: emailIsValid} = emailState; // here we are pulling out 'isValid' property and storing it in a constant named 'emailIsValid'.
-  const {isValid: passwordIsValid} = passwordState;
+  const { isValid: emailIsValid } = emailState; // here we are pulling out 'isValid' property and storing it in a constant named 'emailIsValid'.
+  const { isValid: passwordIsValid } = passwordState;
+
+  const ctx = useContext(AuthContext);
+
+  const emailInputRef = useRef();
+  const passwordInputRef = useRef();
 
   // used sideEffect to check form validity in response to email and password fields with the help of useEffect hook:
   useEffect(() => {
@@ -70,7 +77,7 @@ const Login = (props) => {
       clearTimeout(handler);
     };
   }, [setFormIsValid, emailIsValid, passwordIsValid])
-  
+
 
   const emailChangeHandler = (event) => {
     // setEnteredEmail(event.target.value);
@@ -86,7 +93,7 @@ const Login = (props) => {
 
   const passwordChangeHandler = (event) => {
     // setEnteredPassword(event.target.value);
-    dispatchPassword({type: 'USER_INPUT', val: event.target.value});
+    dispatchPassword({ type: 'USER_INPUT', val: event.target.value });
     // setFormIsValid(
     //   emailState.isValid && event.target.value.trim().length > 6
     // );
@@ -100,45 +107,49 @@ const Login = (props) => {
 
   const validatePasswordHandler = () => {
     // setPasswordIsValid(enteredPassword.trim().length > 6);
-    dispatchPassword({type: 'INPUT_BLUR'});
+    dispatchPassword({ type: 'INPUT_BLUR' });
   };
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(emailState.value, passwordState.value);
+    if(formIsValid){
+    ctx.onLogin(emailState.value, passwordState.value);
+    }
+    else if (!emailIsValid){
+      emailInputRef.current.focus();
+    } else{
+      passwordInputRef.current.focus();
+    }
   };
 
   return (
     <Card className={classes.login}>
       <form onSubmit={submitHandler}>
-        <div
-          className={`${classes.control} ${emailState.isValid === false ? classes.invalid : ''
-            }`}
+        <Input 
+        ref={emailInputRef}
+        label="E-Mail"
+        type="email"
+        id="email"
+        isValid={emailIsValid}
+        value={emailState.value}
+        onChange={emailChangeHandler}
+        onBlur={validateEmailHandler}
         >
-          <label htmlFor="email">E-Mail</label>
-          <input
-            type="email"
-            id="email"
-            value={emailState.value}
-            onChange={emailChangeHandler}
-            onBlur={validateEmailHandler}
-          />
-        </div>
-        <div
-          className={`${classes.control} ${passwordState.isValid === false ? classes.invalid : ''
-            }`}
+        </Input>
+        <Input 
+        ref={passwordInputRef}
+        label="Password"
+        type="password"
+        id="password"
+        isValid={passwordIsValid}
+        value={passwordState.value}
+        onChange={passwordChangeHandler}
+        onBlur={validatePasswordHandler}
         >
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={passwordState.value}
-            onChange={passwordChangeHandler}
-            onBlur={validatePasswordHandler}
-          />
-        </div>
+        </Input>
+        
         <div className={classes.actions}>
-          <Button type="submit" className={classes.btn} disabled={!formIsValid}>
+          <Button type="submit" className={classes.btn} >
             Login
           </Button>
         </div>

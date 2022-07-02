@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import Login from './components/Login/Login';
 import Home from './components/Home/Home';
 import MainHeader from './components/MainHeader/MainHeader';
 import AuthContext from './store/auth_context';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  /* const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // to check the stored user's information:
   useEffect(() => {
@@ -27,24 +27,22 @@ function App() {
     localStorage.removeItem('isLoggedIn');
     setIsLoggedIn(false);
   };
+  */
+
+  // for the above commented code we have made a seperate component(file) 'AuthContext'.
+
+  const ctx = useContext(AuthContext);
 
   return (
-    // <React.Fragment>
-    // we need this context everywhere in the entire application(in all components) therefore we will have to wrap everything in a <app> component with it.
-    // here AuthContext is an object and we wrap our JSX code with component only so on this object, we can access property named 'Provider' which is a component.
-    <AuthContext.Provider value ={
-      {
-        isLoggedIn: isLoggedIn,
-      }
-    }>
-      {/* now all these components and their children have access to this context. */}
-      <MainHeader onLogout={logoutHandler} />
+    <React.Fragment>
+      {/* isAuthenticated = {isLoggedIn} and onLogout={logoutHandler}has been removed from line 36 */}
+      <MainHeader />
       <main>
-        {!isLoggedIn && <Login onLogin={loginHandler} />}
-        {isLoggedIn && <Home onLogout={logoutHandler} />}
+        {/* for Login and Home components, we will use props like before not context becoz Login and Home components are using data not forwarding data. */}
+        {!ctx.isLoggedIn && <Login />}
+        {ctx.isLoggedIn && <Home />}
       </main>
-    </AuthContext.Provider>
-    // </React.Fragment>
+    </React.Fragment>
   );
 }
 
