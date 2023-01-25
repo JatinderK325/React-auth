@@ -1,3 +1,5 @@
+// For help: Refer notes on ist notebook.
+
 import React, { useContext } from 'react';
 import Login from './components/Login/Login';
 import Home from './components/Home/Home';
